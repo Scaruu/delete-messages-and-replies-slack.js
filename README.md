@@ -1,10 +1,76 @@
-# delete-private-message-slack
-Delete your private messages and replies from Slack private conversations
+# Delete messages and replies from Slack
 
-Tutorial in progress
+This script lets you **quickly delete all your messages and replies** from a Slack channel in one command line in your terminal.
 
+**Stop wasting your time with slow Google Chrome extensions that don't even delete replies!**
 
-Modifications and new featues :
-- Fetch only your messages for faster script execution and message deleting.
-- Fetch and delete replies to messages from other users or deleted messages as well.
-- Adding comments to allow beginners to use and modify the script.
+This script deletes your messages, replies to messages and media (links, images, videos, files, etc.).
+
+## Installation
+
+**What you need:**
+
+- [NodeJs](https://nodejs.org/en)
+- The Channel ID where you want to delete your messages and replies.
+- Your Slack User ID to target your messages and replies.
+- Your Slack App Token.
+
+## 1 - Install NodeJS on your PC:
+
+- Go to [NodeJs](https://nodejs.org/en)
+- Type "node -v" in your terminal to check that Node Js is correctly installed.
+
+## 2 - Get your Channel ID:
+
+- Connect to your slack workspace from your browser,
+- Go to the channel in which you want to delete your messages,
+- Get the channel ID : https://app.slack.com/client/SERVER_ID/CHANNEL_ID.
+
+## 3 - Get your User ID:
+
+- Connect to your slack workspace,
+- Go to your profile,
+- Click on the buttons containing 3 dots, then on "Copy Member ID".
+
+## 4 - Get your Slack App Token/User OAuth Token:
+
+- Go to [Slack App API/App](https://api.slack.com/apps/).
+- Click on "Create New App".
+- Choose "From an app manifest".
+- Select your workspace, then click on Next, Create.
+- In the left-hand menu, go to "OAuth & Permissions".
+- Scroll down to "Scopes" then User Token Scopes and click on "Add an OAuth Scope".
+- Add the following scopes:
+
+```bash
+    channels:history
+    groups:history
+    im:history
+    mpim:history
+    chat:write
+```
+
+- Then scroll up and click on "Install to workspace" to retrieve your "User OAuth Token".
+
+5 - Add your IDs to the script:
+
+- Replace placeholders with your own information.
+
+```
+// Your Slack app token
+const token = "ADD_YOUR_SLACK_APP_TOKEN_HERE";
+// Channel ID
+let channel = "ADD_YOUR_SLACK_CHANNEL_ID_HERE";
+// Your User ID
+const userId = "ADD_YOUR_SLACK_USER_ID_HERE";
+```
+
+## 6 - :rocket: Let's run the script and delete your messages:
+
+Open a terminal and type:
+
+```
+node ./delete-slack-messages-and-replies.js YOUR_CHANNEL_ID_HERE
+```
+
+7 - :star: GIVE A STAR TO THIS REPOSITORY :star:
