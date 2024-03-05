@@ -2,6 +2,7 @@
 
 // You need to open slack on your browser to get the CHANNELID
 // Channel ID is on the the browser URL.: https://mycompany.slack.com/messages/CHANNELID/
+// You need to install Node.Js to use this script
 // Pass your channel ID as a parameter when you run the script: node ./delete-slack-messages.js CHANNEL_ID
 
 // ****** CONFIGURATION ******
@@ -15,12 +16,12 @@
 //  - chat:write
 
 // Your Slack app token
-const token = "YOUR_SLACK_APP_TOKEN";
+const token = "ADD_YOUR_SLACK_APP_TOKEN_HERE";
 
 // Channel ID
-let channel = "YOUR_SLACK_CHANNEL_ID_HERE";
+let channel = "ADD_YOUR_SLACK_CHANNEL_ID_HERE";
 // Your User ID
-const userId = "YOUR_SLACK_USER_ID_HERE";
+const userId = "ADD_YOUR_SLACK_USER_ID_HERE";
 
 const https = require("https");
 
@@ -116,5 +117,5 @@ async function fetchAndDeleteMessages(cursor = "") {
   }
 }
 
-// Start the process
+// Call the main function
 fetchAndDeleteMessages();
