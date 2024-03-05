@@ -18,6 +18,7 @@ const token = "YOUR_SLACK_APP_TOKEN"; // ADD HERE YOUR SLACK APP TOKEN
 // VALIDATION ##########################################################################################################
 
 if (token === "YOUR_SLACK_APP_TOKEN") {
+  // DO NOT ADD YOUR SLACK APP TOKEN HERE, It's for validation purpose
   console.error(
     "Token seems incorrect. Please open the file with an editor and modify the token variable."
   );
