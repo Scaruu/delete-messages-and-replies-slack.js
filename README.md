@@ -73,4 +73,4 @@ Open a terminal and type:
 node ./delete-slack-messages-and-replies.js YOUR_CHANNEL_ID_HERE
 ```
 
-7 - :star: GIVE A STAR TO THIS REPOSITORY :star:
+## 7 - :star: GIVE A STAR TO THIS REPOSITORY :star:
