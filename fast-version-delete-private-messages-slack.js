@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const token = "YOUR_SLACK_APP_TOKEN"; // ADD HERE YOUR SLACK APP TOKEN
+const token = "YOUR_SLACK_APP_TOKEN"; // ADD YOUR SLACK APP TOKEN HERE
 const channel = "ADD_HERE_YOUR_CHANNEL_ID";
 
 const https = require("https");
@@ -85,4 +85,33 @@ const fetchAndDeleteMessages = async (cursor = "") => {
   }
 };
 
-fetchAndDeleteMessages();
+const batchSize = 10; // Nombre de suppressions par lot
+const batchDelay = 2000; // Délai en millisecondes entre les lots
+
+const fetchAndDeleteMessagesWithRateLimit = async () => {
+  let messagesProcessed = 0;
+
+  const processNextBatch = async () => {
+    const remainingMessages = await fetchAndDeleteMessages();
+    messagesProcessed += remainingMessages.length;
+
+    if (remainingMessages.length === 0) {
+      console.log("All messages deleted!");
+      return;
+    }
+
+    if (messagesProcessed % batchSize === 0) {
+      console.log(`Processed ${messagesProcessed} messages.`);
+      console.log(
+        `Waiting for ${batchDelay / 1000} seconds before next batch...`
+      );
+      await sleep(batchDelay);
+    }
+
+    await processNextBatch();
+  };
+
+  await processNextBatch();
+};
+
+fetchAndDeleteMessagesWithRateLimit();
