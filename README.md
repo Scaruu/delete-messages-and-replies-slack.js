@@ -17,24 +17,24 @@ This script deletes your messages, replies to messages and media (links, images,
 - Your Slack User ID to target your messages and replies.
 - Your Slack App Token.
 
-## 1 :inbox_tray: Install NodeJS on your PC:
+## :one: :inbox_tray: Install NodeJS on your PC:
 
 - Go to [NodeJs](https://nodejs.org/en)
 - Type "node -v" in your terminal to check that Node Js is correctly installed.
 
-## 2 :id: Get your Channel ID:
+## :two: :id: Get your Channel ID:
 
 - Connect to your slack workspace from your browser,
 - Go to the channel in which you want to delete your messages,
 - Get the channel ID : https://app.slack.com/client/SERVER_ID/CHANNEL_ID.
 
-## 3 :id: Get your User ID:
+## :three: :id: Get your User ID:
 
 - Connect to your slack workspace,
 - Go to your profile,
 - Click on the buttons containing 3 dots, then on "Copy Member ID".
 
-## 4 :id: Get your Slack App Token/User OAuth Token:
+## :four: :id: Get your Slack App Token/User OAuth Token:
 
 - Go to [Slack App API/App](https://api.slack.com/apps/).
 - Click on "Create New App".
@@ -54,7 +54,7 @@ This script deletes your messages, replies to messages and media (links, images,
 
 - Then scroll up and click on "Install to workspace" to retrieve your "User OAuth Token".
 
-5 :computer: Add your IDs to the script:
+## :five: :computer: Add your IDs to the script:
 
 - Replace placeholders with your own information.
 
@@ -67,7 +67,7 @@ let channel = "ADD_YOUR_SLACK_CHANNEL_ID_HERE";
 const userId = "ADD_YOUR_SLACK_USER_ID_HERE";
 ```
 
-## 6 :rocket: Let's run the script and delete your messages:
+## :six: :rocket: Let's run the script and delete your messages:
 
 Open a terminal and type:
 
@@ -75,4 +75,6 @@ Open a terminal and type:
 node ./delete-slack-messages-and-replies.js YOUR_CHANNEL_ID_HERE
 ```
 
-## 7 :star: GIVE A STAR TO THIS REPOSITORY :star:
+## :arrow_right: :star: GIVE A STAR TO THIS REPOSITORY :star:
+
+-
