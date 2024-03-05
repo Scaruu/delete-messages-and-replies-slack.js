@@ -4,9 +4,8 @@
 // Channel ID is on the the browser URL.: https://mycompany.slack.com/messages/CHANNELID/
 // Pass your channel ID as a parameter when you run the script: node ./delete-slack-messages.js CHANNEL_ID
 
-// CONFIGURATION #######################################################################################################
+// ****** CONFIGURATION ******
 
-const token = "YOUR_SLACK_APP_TOKEN"; // ADD HERE YOUR SLACK APP TOKEN
 // Create an app or use an existing Slack App
 // Add following scopes in your app from "OAuth & Permissions"
 //  - channels:history
@@ -15,44 +14,24 @@ const token = "YOUR_SLACK_APP_TOKEN"; // ADD HERE YOUR SLACK APP TOKEN
 //  - mpim:history
 //  - chat:write
 
-// VALIDATION ##########################################################################################################
+// Your Slack app token
+const token = "YOUR_SLACK_APP_TOKEN";
 
-if (token === "YOUR_SLACK_APP_TOKEN") {
-  // DO NOT ADD YOUR SLACK APP TOKEN HERE, It's for validation purpose
-  console.error(
-    "Token seems incorrect. Please open the file with an editor and modify the token variable."
-  );
-}
-
-let channel = "ADD_HERE_YOUR_CHANNEL_ID";
-
-if (process.argv[0].indexOf("node") !== -1 && process.argv.length > 2) {
-  channel = process.argv[2];
-} else if (process.argv.length > 1) {
-  channel = process.argv[1];
-} else {
-  console.log("Usage: node ./delete-slack-messages.js CHANNEL_ID");
-  process.exit(1);
-}
-
-// GLOBALS #############################################################################################################
+// Channel ID
+let channel = "YOUR_SLACK_CHANNEL_ID_HERE";
+// Your User ID
+const userId = "YOUR_SLACK_USER_ID_HERE";
 
 const https = require("https");
-const historyApiUrl = `/api/conversations.history?channel=${channel}&count=1000&cursor=`;
-const deleteApiUrl = "/api/chat.delete";
-const repliesApiUrl = `/api/conversations.replies?channel=${channel}&ts=`;
-let delay = 300; // Delay between delete operations in milliseconds
 
-// ---------------------------------------------------------------------------------------------------------------------
-
-const sleep = (delay) => new Promise((r) => setTimeout(r, delay));
-const request = (path, data) =>
-  new Promise((resolve, reject) => {
+// Function to make HTTPS requests to Slack API
+const request = (path, method = "GET", data) => {
+  return new Promise((resolve, reject) => {
     const options = {
       hostname: "slack.com",
       port: 443,
       path: path,
-      method: data ? "POST" : "GET",
+      method: method,
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json; charset=utf-8",
@@ -75,52 +54,12 @@ const request = (path, data) =>
 
     req.end();
   });
+};
 
-// ---------------------------------------------------------------------------------------------------------------------
-
-async function deleteMessages(threadTs, messages) {
-  if (messages.length == 0) {
-    return;
-  }
-
-  const message = messages.shift();
-
-  // Delete the current message only if it belongs to your user
-  if (message.user === "YOUR_SLACK_USER_ID_HERE") {
-    const response = await request(deleteApiUrl, {
-      channel: channel,
-      ts: message.ts,
-    });
-
-    if (response.ok === true) {
-      console.log(message.ts + " deleted!");
-    } else if (response.ok === false) {
-      console.log(
-        message.ts + " could not be deleted! (" + response.error + ")"
-      );
-
-      if (response.error === "ratelimited") {
-        await sleep(1000);
-        delay += 100; //If the rate limitation error is detected, we must increase the delay.
-        messages.unshift(message);
-      }
-    }
-  }
-
-  // If it's a response, then call fetchAndDeleteMessages to delete it
-  if (message.thread_ts) {
-    await fetchAndDeleteMessages(message.thread_ts, "");
-  }
-
-  await sleep(delay);
-  await deleteMessages(threadTs, messages);
-}
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-async function fetchAndDeleteMessages(threadTs, cursor) {
+// Function to fetch and delete messages
+async function fetchAndDeleteMessages(cursor = "") {
   const response = await request(
-    (threadTs ? repliesApiUrl + threadTs + "&cursor=" : historyApiUrl) + cursor
+    `/api/conversations.history?channel=${channel}&limit=1000&cursor=${cursor}`
   );
 
   if (!response.ok) {
@@ -129,24 +68,53 @@ async function fetchAndDeleteMessages(threadTs, cursor) {
   }
 
   if (!response.messages || response.messages.length === 0) {
+    console.log("There is no message.");
     return;
   }
 
-  // Filters messages to retrieve only yours, speeding up message deletion. The script won't waste time going over other users' messages
-  const yourMessages = response.messages.filter(
-    (message) => message.user === "YOUR_SLACK_USER_ID_HERE"
-  );
+  // Delete user's messages and replies
+  for (const message of response.messages) {
+    if (message.user === userId) {
+      const deleteResponse = await request("/api/chat.delete", "POST", {
+        channel: channel,
+        ts: message.ts,
+      });
 
-  await deleteMessages(threadTs, yourMessages);
+      if (deleteResponse.ok) {
+        console.log(message.ts + " deleted!");
+      } else {
+        console.error("Unable to delete message: " + message.ts);
+      }
+    }
+
+    if (message.thread_ts) {
+      const repliesResponse = await request(
+        `/api/conversations.replies?channel=${channel}&ts=${message.thread_ts}`
+      );
+
+      if (repliesResponse.ok && repliesResponse.messages) {
+        for (const reply of repliesResponse.messages) {
+          if (reply.user === userId) {
+            const deleteResponse = await request("/api/chat.delete", "POST", {
+              channel: channel,
+              ts: reply.ts,
+            });
+
+            if (deleteResponse.ok) {
+              console.log(reply.ts + " deleted!");
+            } else {
+              console.error("Unable to delete answer: " + reply.ts);
+            }
+          }
+        }
+      }
+    }
+  }
 
   if (response.has_more) {
-    await fetchAndDeleteMessages(
-      threadTs,
-      response.response_metadata.next_cursor
-    );
+    await fetchAndDeleteMessages(response.response_metadata.next_cursor);
   }
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
-
-fetchAndDeleteMessages(null, "");
+// Start the process
+fetchAndDeleteMessages();
