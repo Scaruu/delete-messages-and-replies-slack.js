@@ -8,7 +8,7 @@ This script deletes your messages, replies to messages and media (links, images,
 
 :star: Don't forget to like this repository ! :star:
 
-## Installation
+## :construction: Installation
 
 **What you need:**
 
