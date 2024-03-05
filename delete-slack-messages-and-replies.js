@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 
-// **** WORK IN PROGRESS ***
-
 // You need to open slack on your browser to get the CHANNELID
 // Channel ID is on the the browser URL.: https://mycompany.slack.com/messages/CHANNELID/
 // You need to install Node.Js to use this script
-// Pass your channel ID as a parameter when you run the script: node ./delete-slack-messages.js CHANNEL_ID
+// Pass your channel ID as a parameter when you run the script: node ./delete-slack-messages-and-replies.js CHANNEL_ID
 
 // ****** CONFIGURATION ******
 
@@ -75,21 +73,19 @@ async function fetchAndDeleteMessages(cursor = "") {
     return;
   }
 
-  // Array to store promises for message deletion
-  const deletePromises = [];
-
-  // Flag to check if all messages are deleted
-  let allMessagesDeleted = true;
-
   // Delete user's messages and replies
   for (const message of response.messages) {
     if (message.user === userId) {
-      deletePromises.push(
-        request("/api/chat.delete", "POST", {
-          channel: channel,
-          ts: message.ts,
-        })
-      );
+      const deleteResponse = await request("/api/chat.delete", "POST", {
+        channel: channel,
+        ts: message.ts,
+      });
+
+      if (deleteResponse.ok) {
+        console.log(message.ts + " deleted!");
+      } else {
+        console.error("Unable to delete message: " + message.ts);
+      }
     }
 
     if (message.thread_ts) {
@@ -100,36 +96,24 @@ async function fetchAndDeleteMessages(cursor = "") {
       if (repliesResponse.ok && repliesResponse.messages) {
         for (const reply of repliesResponse.messages) {
           if (reply.user === userId) {
-            deletePromises.push(
-              request("/api/chat.delete", "POST", {
-                channel: channel,
-                ts: reply.ts,
-              })
-            );
+            const deleteResponse = await request("/api/chat.delete", "POST", {
+              channel: channel,
+              ts: reply.ts,
+            });
+
+            if (deleteResponse.ok) {
+              console.log(reply.ts + " deleted!");
+            } else {
+              console.error("Unable to delete answer: " + reply.ts);
+            }
           }
         }
       }
     }
-
-    // If we find any message that belongs to the user, set the flag to false
-    if (message.user === userId) {
-      allMessagesDeleted = false;
-    }
   }
 
-  // Wait for all deletion promises to resolve
-  await Promise.all(deletePromises);
-
   if (response.has_more) {
-    // Add a delay of 2 seconds before making the next request
-    await new Promise((resolve) => setTimeout(resolve, 2000));
     await fetchAndDeleteMessages(response.response_metadata.next_cursor);
-  } else {
-    if (allMessagesDeleted) {
-      console.log("All messages deleted!");
-    } else {
-      console.log("Some messages are remaining.");
-    }
   }
 }
 
