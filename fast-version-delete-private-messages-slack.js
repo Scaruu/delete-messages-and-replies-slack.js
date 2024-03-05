@@ -78,6 +78,9 @@ async function fetchAndDeleteMessages(cursor = "") {
   // Array to store promises for message deletion
   const deletePromises = [];
 
+  // Flag to check if all messages are deleted
+  let allMessagesDeleted = true;
+
   // Delete user's messages and replies
   for (const message of response.messages) {
     if (message.user === userId) {
@@ -107,15 +110,26 @@ async function fetchAndDeleteMessages(cursor = "") {
         }
       }
     }
+
+    // If we find any message that belongs to the user, set the flag to false
+    if (message.user === userId) {
+      allMessagesDeleted = false;
+    }
   }
 
   // Wait for all deletion promises to resolve
   await Promise.all(deletePromises);
 
   if (response.has_more) {
-    // Add a delay of 1 second before making the next request
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Add a delay of 2 seconds before making the next request
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     await fetchAndDeleteMessages(response.response_metadata.next_cursor);
+  } else {
+    if (allMessagesDeleted) {
+      console.log("All messages deleted!");
+    } else {
+      console.log("Some messages are remaining.");
+    }
   }
 }
 
