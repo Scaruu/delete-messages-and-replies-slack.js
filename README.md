@@ -1,3 +1,13 @@
+# Delete messages and replies from Slack
+
+This script lets you **quickly delete all your messages and replies** from a Slack channel in one command line in your terminal.
+
+**Stop wasting your time with slow Google Chrome extensions that don't even delete replies!**
+
+This script deletes your messages, replies to messages and media (links, images, videos, files, etc.).
+
+:star: Don't forget to like this repository ! :star:
+
 ## Installation
 
 **What you need:**
@@ -65,4 +75,4 @@ Open a terminal and type:
 node ./delete-slack-messages-and-replies.js YOUR_CHANNEL_ID_HERE
 ```
 
-7 :star: GIVE A STAR TO THIS REPOSITORY :star:
+## 7 :star: GIVE A STAR TO THIS REPOSITORY :star:
