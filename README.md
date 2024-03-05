@@ -1,4 +1,4 @@
-# Delete messages and replies from Slack
+# :computer: Delete messages and replies from Slack
 
 This script lets you **quickly delete all your messages and replies** from a Slack channel in one command line in your terminal.
 
