@@ -1,22 +1,40 @@
 #!/usr/bin/env node
 
-const token = "YOUR_SLACK_APP_TOKEN"; // ADD YOUR SLACK APP TOKEN HERE
-const channel = "ADD_HERE_YOUR_CHANNEL_ID";
+// **** WORK IN PROGRESS ***
+
+// You need to open slack on your browser to get the CHANNELID
+// Channel ID is on the the browser URL.: https://mycompany.slack.com/messages/CHANNELID/
+// You need to install Node.Js to use this script
+// Pass your channel ID as a parameter when you run the script: node ./delete-slack-messages.js CHANNEL_ID
+
+// ****** CONFIGURATION ******
+
+// Create an app or use an existing Slack App
+// Add following scopes in your app from "OAuth & Permissions"
+//  - channels:history
+//  - groups:history
+//  - im:history
+//  - mpim:history
+//  - chat:write
+
+// Your Slack app token
+const token = "ADD_YOUR_SLACK_APP_TOKEN_HERE";
+
+// Channel ID
+let channel = "ADD_YOUR_SLACK_CHANNEL_ID_HERE";
+// Your User ID
+const userId = "ADD_YOUR_SLACK_USER_ID_HERE";
 
 const https = require("https");
 
-const historyApiUrl = `/api/conversations.history?channel=${channel}&count=1000&cursor=`;
-const deleteApiUrl = "/api/chat.delete";
-const repliesApiUrl = `/api/conversations.replies?channel=${channel}&ts=`;
-
-const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
-const request = (path, data) => {
+// Function to make HTTPS requests to Slack API
+const request = (path, method = "GET", data) => {
   return new Promise((resolve, reject) => {
     const options = {
       hostname: "slack.com",
       port: 443,
       path: path,
-      method: data ? "POST" : "GET",
+      method: method,
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json; charset=utf-8",
@@ -41,29 +59,11 @@ const request = (path, data) => {
   });
 };
 
-const deleteMessages = async (messages) => {
-  const deleteRequests = messages.map(async (message) => {
-    if (message.user === "YOUR_SLACK_USER_ID_HERE") {
-      const response = await request(deleteApiUrl, {
-        channel: channel,
-        ts: message.ts,
-      });
-
-      if (response.ok === true) {
-        console.log(message.ts + " deleted!");
-      } else {
-        console.log(
-          message.ts + " could not be deleted! (" + response.error + ")"
-        );
-      }
-    }
-  });
-
-  await Promise.all(deleteRequests);
-};
-
-const fetchAndDeleteMessages = async (cursor = "") => {
-  const response = await request(historyApiUrl + cursor);
+// Function to fetch and delete messages
+async function fetchAndDeleteMessages(cursor = "") {
+  const response = await request(
+    `/api/conversations.history?channel=${channel}&limit=1000&cursor=${cursor}`
+  );
 
   if (!response.ok) {
     console.error(response.error);
@@ -71,47 +71,53 @@ const fetchAndDeleteMessages = async (cursor = "") => {
   }
 
   if (!response.messages || response.messages.length === 0) {
+    console.log("There is no message.");
     return;
   }
 
-  const yourMessages = response.messages.filter(
-    (message) => message.user === "YOUR_SLACK_USER_ID_HERE"
-  );
+  // Array to store promises for message deletion
+  const deletePromises = [];
 
-  await deleteMessages(yourMessages);
+  // Delete user's messages and replies
+  for (const message of response.messages) {
+    if (message.user === userId) {
+      deletePromises.push(
+        request("/api/chat.delete", "POST", {
+          channel: channel,
+          ts: message.ts,
+        })
+      );
+    }
+
+    if (message.thread_ts) {
+      const repliesResponse = await request(
+        `/api/conversations.replies?channel=${channel}&ts=${message.thread_ts}`
+      );
+
+      if (repliesResponse.ok && repliesResponse.messages) {
+        for (const reply of repliesResponse.messages) {
+          if (reply.user === userId) {
+            deletePromises.push(
+              request("/api/chat.delete", "POST", {
+                channel: channel,
+                ts: reply.ts,
+              })
+            );
+          }
+        }
+      }
+    }
+  }
+
+  // Wait for all deletion promises to resolve
+  await Promise.all(deletePromises);
 
   if (response.has_more) {
+    // Add a delay of 1 second before making the next request
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     await fetchAndDeleteMessages(response.response_metadata.next_cursor);
   }
-};
+}
 
-const batchSize = 10; // Nombre de suppressions par lot
-const batchDelay = 2000; // Délai en millisecondes entre les lots
-
-const fetchAndDeleteMessagesWithRateLimit = async () => {
-  let messagesProcessed = 0;
-
-  const processNextBatch = async () => {
-    const remainingMessages = await fetchAndDeleteMessages();
-    messagesProcessed += remainingMessages.length;
-
-    if (remainingMessages.length === 0) {
-      console.log("All messages deleted!");
-      return;
-    }
-
-    if (messagesProcessed % batchSize === 0) {
-      console.log(`Processed ${messagesProcessed} messages.`);
-      console.log(
-        `Waiting for ${batchDelay / 1000} seconds before next batch...`
-      );
-      await sleep(batchDelay);
-    }
-
-    await processNextBatch();
-  };
-
-  await processNextBatch();
-};
-
-fetchAndDeleteMessagesWithRateLimit();
+// Call the main function
+fetchAndDeleteMessages();
