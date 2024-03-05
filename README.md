@@ -9,4 +9,4 @@ Changelogs :
 - Fetch and delete replies to messages from other users as well.
 - Adding comments to allow beginners to use and modify the script.
 
-Modified version from https://gist.github.com/firatkucuk/ee898bc919021da621689f5e47e7abac @firatkucuk
+Modified version from https://gist.github.com/firatkucuk/ee898bc919021da621689f5e47e7abac
