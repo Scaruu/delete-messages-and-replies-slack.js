@@ -76,5 +76,3 @@ node ./delete-slack-messages-and-replies.js YOUR_CHANNEL_ID_HERE
 ```
 
 ## :arrow_right: :star: GIVE A STAR TO THIS REPOSITORY :star:
-
--
